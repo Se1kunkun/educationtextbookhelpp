@@ -22,10 +22,10 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            教材・教具の作り方と授業での使い方を共有するサイト
+            小学校の教具・教材を簡単に検索
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            このウェブサイトにどんな情報がのっているのついて、どんな目的でつくったのかをかりーン
+            小学校の学年・教科・単元ごとに、教材や教具の作り方と使い方をまとめています。授業準備の参考にしてください。
           </p>
         </div>
 
