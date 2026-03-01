@@ -8,7 +8,11 @@ import { useCatalog, gradeOptions, listHelpers, subjectOptions, type MaterialEnt
 const sitename = "教具教材ウェブサイト";
 
 const ADMIN_AUTH_KEY = "admin-authenticated";
+codex/find-current-website-structure-wvynga
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "Sensei2026!";
+=======
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
+main
 
 const emptyForm = {
   unit: "",
