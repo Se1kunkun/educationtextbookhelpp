@@ -4,6 +4,7 @@ import GradeSelection from "./components/GradeSelection";
 import SubjectSelection from "./components/SubjectSelection";
 import UnitSelection from "./components/UnitSelection";
 import MaterialDetail from "./components/MaterialDetail";
+import AdminMaterialManager from "./components/AdminMaterialManager";
 
 export const router = createBrowserRouter([
   {
@@ -25,5 +26,9 @@ export const router = createBrowserRouter([
   {
     path: "/material/:grade/:subject/:unit",
     Component: MaterialDetail,
+  },
+  {
+    path: "/admin",
+    Component: AdminMaterialManager,
   },
 ]);
