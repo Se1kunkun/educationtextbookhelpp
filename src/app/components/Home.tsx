@@ -43,6 +43,13 @@ export default function Home() {
               <p className="text-sm text-gray-500 text-center">
                 学年・教科・単元から教材を検索できます
               </p>
+              <Button
+                onClick={() => navigate("/admin")}
+                variant="outline"
+                className="w-full"
+              >
+                管理者メニュー（教材の追加・編集）
+              </Button>
             </div>
           </div>
 
