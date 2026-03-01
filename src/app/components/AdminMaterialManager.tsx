@@ -13,7 +13,7 @@ import {
 
 const sitename = "教具教材ウェブサイト";
 const ADMIN_AUTH_KEY = "admin-authenticated";
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "Sensei2026!";
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
 
 type MaterialForm = {
   unit: string;
