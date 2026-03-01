@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router";
 import { Button } from "./ui/button";
-import { ArrowLeft, GraduationCap, Clock, Users, Lightbulb } from "lucide-react";
+import { ArrowLeft, GraduationCap, Clock, Users, Lightbulb, ExternalLink, FileText, PlayCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { useCatalog } from "../data/catalog";
 
@@ -51,6 +51,24 @@ export default function MaterialDetail() {
             </div>
           </div>
         </div>
+
+        {material.resourceType !== "none" && material.resourceUrl && (
+          <Card className="mb-6 border-blue-200 bg-blue-50/40">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-900">
+                {material.resourceType === "video" ? <PlayCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                教材ファイル・教材リンク
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-blue-900 mb-3">{material.resourceTitle || "教材を開く"}</p>
+              <a href={material.resourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md">
+                {material.resourceType === "pdf" ? "PDFを開く" : material.resourceType === "video" ? "動画を開く" : "教材リンクを開く"}
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="mb-6">
           <CardHeader>

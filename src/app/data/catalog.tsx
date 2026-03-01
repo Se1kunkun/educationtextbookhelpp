@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
+export type MaterialResourceType = "none" | "link" | "pdf" | "video";
+
 export type MaterialEntry = {
   title: string;
   overview: string;
@@ -9,6 +11,9 @@ export type MaterialEntry = {
   tips: string[];
   timeRequired: string;
   difficulty: string;
+  resourceType: MaterialResourceType;
+  resourceTitle: string;
+  resourceUrl: string;
 };
 
 export type Catalog = Record<string, Record<string, Record<string, MaterialEntry>>>;
@@ -16,7 +21,6 @@ export type Catalog = Record<string, Record<string, Record<string, MaterialEntry
 const STORAGE_KEY = "education-material-catalog";
 
 export const gradeOptions = ["1", "2", "3", "4", "5", "6"];
-
 export const subjectOptions = ["国語", "算数", "理科", "社会", "英語", "音楽", "図工", "体育"];
 
 const defaultMaterial = (unit: string): MaterialEntry => ({
@@ -28,6 +32,9 @@ const defaultMaterial = (unit: string): MaterialEntry => ({
   tips: ["ポイント1", "ポイント2"],
   timeRequired: "45分",
   difficulty: "中",
+  resourceType: "none",
+  resourceTitle: "",
+  resourceUrl: "",
 });
 
 const initialCatalog: Catalog = {
@@ -35,15 +42,8 @@ const initialCatalog: Catalog = {
     理科: {
       月の満ち欠け: {
         title: "月の満ち欠けモデル",
-        overview:
-          "発泡スチロール球とライトを使って、月の満ち欠けを視覚的に理解できる教具です。",
-        materials: [
-          "発泡スチロール球（直径10cm）",
-          "懐中電灯またはLEDライト",
-          "竹串または棒",
-          "黒い画用紙",
-          "マジック（黒）",
-        ],
+        overview: "発泡スチロール球とライトを使って、月の満ち欠けを視覚的に理解できる教具です。",
+        materials: ["発泡スチロール球（直径10cm）", "懐中電灯またはLEDライト", "竹串または棒", "黒い画用紙", "マジック（黒）"],
         howToMake: [
           "発泡スチロール球の半分を黒いマジックで塗ります",
           "竹串を発泡スチロール球に刺して持ち手を作ります",
@@ -64,6 +64,9 @@ const initialCatalog: Catalog = {
         ],
         timeRequired: "45分（1時間）",
         difficulty: "中",
+        resourceType: "pdf",
+        resourceTitle: "月の満ち欠けワークシート（サンプル）",
+        resourceUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
       },
       天気と気温: defaultMaterial("天気と気温"),
       電気のはたらき: defaultMaterial("電気のはたらき"),
@@ -101,10 +104,7 @@ type CatalogContextType = {
 const CatalogContext = createContext<CatalogContextType | null>(null);
 
 function parseList(value: string): string[] {
-  return value
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
+  return value.split("\n").map((item) => item.trim()).filter(Boolean);
 }
 
 export function serializeList(value: string[]): string {
@@ -113,13 +113,42 @@ export function serializeList(value: string[]): string {
 
 export const listHelpers = { parseList, serializeList };
 
+function normalizeMaterial(unit: string, material: Partial<MaterialEntry> | undefined): MaterialEntry {
+  const fallback = defaultMaterial(unit);
+  return {
+    ...fallback,
+    ...material,
+    materials: material?.materials ?? fallback.materials,
+    howToMake: material?.howToMake ?? fallback.howToMake,
+    howToUse: material?.howToUse ?? fallback.howToUse,
+    tips: material?.tips ?? fallback.tips,
+    resourceType: material?.resourceType ?? fallback.resourceType,
+    resourceTitle: material?.resourceTitle ?? fallback.resourceTitle,
+    resourceUrl: material?.resourceUrl ?? fallback.resourceUrl,
+  };
+}
+
+function normalizeCatalog(input: Catalog): Catalog {
+  const normalized: Catalog = {};
+  for (const [grade, subjects] of Object.entries(input)) {
+    normalized[grade] = {};
+    for (const [subject, units] of Object.entries(subjects ?? {})) {
+      normalized[grade][subject] = {};
+      for (const [unit, material] of Object.entries(units ?? {})) {
+        normalized[grade][subject][unit] = normalizeMaterial(unit, material);
+      }
+    }
+  }
+  return normalized;
+}
+
 export function CatalogProvider({ children }: { children: ReactNode }) {
   const [catalog, setCatalog] = useState<Catalog>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return initialCatalog;
 
     try {
-      return JSON.parse(saved) as Catalog;
+      return normalizeCatalog(JSON.parse(saved) as Catalog);
     } catch {
       return initialCatalog;
     }
@@ -139,7 +168,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
             ...(prev[grade] ?? {}),
             [subject]: {
               ...(prev[grade]?.[subject] ?? {}),
-              [unit]: material,
+              [unit]: normalizeMaterial(unit, material),
             },
           },
         }));
@@ -150,20 +179,15 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
           if (!next[grade]?.[subject]?.[unit]) return prev;
 
           delete next[grade][subject][unit];
-
-          if (Object.keys(next[grade][subject]).length === 0) {
-            delete next[grade][subject];
-          }
-          if (Object.keys(next[grade]).length === 0) {
-            delete next[grade];
-          }
+          if (Object.keys(next[grade][subject]).length === 0) delete next[grade][subject];
+          if (Object.keys(next[grade]).length === 0) delete next[grade];
 
           return next;
         });
       },
       getMaterial: (grade, subject, unit) => {
         if (!grade || !subject || !unit) return defaultMaterial("教材");
-        return catalog[grade]?.[subject]?.[unit] ?? defaultMaterial(unit);
+        return normalizeMaterial(unit, catalog[grade]?.[subject]?.[unit]);
       },
     }),
     [catalog],
@@ -174,9 +198,6 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
 
 export function useCatalog() {
   const context = useContext(CatalogContext);
-  if (!context) {
-    throw new Error("useCatalog must be used within CatalogProvider");
-  }
-
+  if (!context) throw new Error("useCatalog must be used within CatalogProvider");
   return context;
 }
